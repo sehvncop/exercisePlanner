@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gym Planner Test</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 2rem;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Generate Personal Gym Plan</h1>
+  <form id="form">
+    <label>Age <input name="age" type="number" required /></label>
+    <label>
+      Gender
+      <select name="gender" required>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+    <label>Height (cm) <input name="height" type="number" required /></label>
+    <label>Weight (kg) <input name="weight" type="number" required /></label>
+    <label>
+      Body Type
+      <select name="bodyType" required>
+        <option value="ectomorph">Ectomorph</option>
+        <option value="mesomorph">Mesomorph</option>
+        <option value="endomorph">Endomorph</option>
+      </select>
+    </label>
+    <label>Body-fat % <input name="bodyFat" type="number" required /></label>
+    <label>
+      Diseases (comma-separated)
+      <input name="diseases" placeholder="diabetes,hypertension" />
+    </label>
+    <label>
+      Strength
+      <select name="strength" required>
+        <option value="light">Light</option>
+        <option value="medium">Medium</option>
+        <option value="heavy">Heavy</option>
+      </select>
+    </label>
+    <label>
+      Goal
+      <select name="goal" required>
+        <option value="weightLoss">Weight Loss</option>
+        <option value="tone">Tone</option>
+        <option value="bulk">Bulk</option>
+      </select>
+    </label>
+    <label>
+      Plan Type
+      <select name="planType" required>
+        <option value="starter">🇮🇳 Indian Starter (Limited Equipment)</option>
+        <option value="advanced">🔴 Advanced – All Exercises</option>
+      </select>
+    </label>
+    <button type="submit">Generate Plan</button>
+  </form>
+
+  <pre id="result"></pre>
+
+  <script>
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      data.diseases = data.diseases ? data.diseases.split(',').map(d => d.trim()) : [];
+      data.age = +data.age;
+      data.height = +data.height;
+      data.weight = +data.weight;
+      data.bodyFat = +data.bodyFat;
+
+      const path = data.planType === 'starter'
+        ? '/api/generate-plan-starter'
+        : '/api/generate-plan';
+
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) {
+        alert('Error generating plan');
+        return;
+      }
+
+      // download PDF
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'My-Gym-Plan.pdf';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+
+</html>
